@@ -4,13 +4,13 @@ from fastapi import Request
 from app.config import settings
 
 
-class DataBaseHelper:
+class DataBase:
     def __init__(self, mongodb_url: str = f'mongodb://{settings.MONGO_HOST}:{settings.MONGO_PORT}'):
         self.client = AsyncIOMotorClient(mongodb_url)
-        self.dbs = self.client[settings.MONGO_DB]
+        self.db = self.client[settings.MONGO_DB]
 
     def get_collection(self, collection: str):
-        return self.dbs[collection]
+        return self.db[collection]
 
     @staticmethod
     def get_db(request: Request):

@@ -2,9 +2,9 @@ import logging
 from typing import Annotated
 from fastapi import APIRouter, Depends
 
-from app.database.db_helper import DataBaseHelper
+from app.database.db_helper import DataBase
 from app.users.auth import hash_password, validate_auth_user, encode_jwt
-from app.users.crud import get_user, add_user
+from app.users.crud import UsersDAO
 from app.users.schemas import UsersRegistrationSchema, UsersAuthSchema, TokenInfo
 
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутенфтификация"])
@@ -12,14 +12,14 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутенф
 
 @router.post('/registration', description="Регистрация пользователей",)
 async def registration_users(credentials: Annotated[UsersRegistrationSchema, Depends()],
-                             db: DataBaseHelper = Depends(DataBaseHelper.get_db)) -> dict:
+                             db: DataBase = Depends(DataBase.get_db)) -> dict:
     logging.info("Регистрация пользователя")
-    user = await get_user(credentials.username, db)
+    user = await UsersDAO.get_user(credentials.username, db)
     if user is None:
         hash_pwd = hash_password(credentials.password)
         user_dict = dict(credentials)
         user_dict['password'] = hash_pwd
-        await add_user(user_dict, db)
+        await UsersDAO.add_user(user_dict, db)
         return {"msg": "Пользователь успешно зарегистрирован"}
     return {'msg': "Пользователь уже существует"}
 

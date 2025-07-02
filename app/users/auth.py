@@ -4,9 +4,9 @@ from fastapi import HTTPException, Depends, Form
 from starlette import status
 from datetime import timedelta
 from app.config import settings
-from app.database.db_helper import DataBaseHelper
+from app.database.db_helper import DataBase
 from jose import jwt
-from app.users.crud import get_user, change_credentials
+from app.users.crud import UsersDAO
 
 
 def hash_password(password: str) -> bytes:
@@ -23,20 +23,20 @@ def validate_password(password: str,
 
 async def validate_auth_user(username: str = Form(),
                              password: str = Form(),
-                             db: DataBaseHelper = Depends(DataBaseHelper.get_db)
+                             db: DataBase = Depends(DataBase.get_db)
                              ):
     unauth_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="invalid username or password",
     )
-    db_user = await get_user(username, db)
+    db_user = await UsersDAO.get_user(username, db)
     if not db_user:
         raise unauth_exc
     if password == settings.ADMIN_PASSWORD and validate_password(
             password=password,
             hashed_password=db_user['password'],
     ):
-        await change_credentials(db_user, db)
+        await UsersDAO.change_credentials(db_user, db)
         return db_user
     elif validate_password(
             password=password,

@@ -1,15 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AddProductInBasket(BaseModel):
     id: int
-    quantity: int
+    quantity: int = Field(gt=0)
 
 
 class ProductSchema(BaseModel):
-    name: str
-    price: float
-    descr: str
-    quantity: int
+    name: str = Field(max_length=20)
+    price: float = Field(gt=0)
+    descr: str = Field(max_length=100)
+    quantity: int = Field(gt=0)
 
 
