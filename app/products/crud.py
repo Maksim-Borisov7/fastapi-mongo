@@ -92,7 +92,6 @@ class ProductsDAO:
                     {'$set': {"quantity": product['quantity'] - value['quantity']}}
                 )
                 await cls.delete_product_from_basket(id, user, db)
-            return {'msg': 'Ваш заказ оплачен'}
         except Exception as err:
             raise HTTPException(status_code=400, detail=logging.info(err))
 

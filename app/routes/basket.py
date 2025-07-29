@@ -5,6 +5,7 @@ from app.database.db_helper import DataBase
 from app.dependencies import get_current_is_user
 from app.products.crud import ProductsDAO
 from app.products.schemas import AddProductInBasket
+from app.routes.rabbitmq import send_notification
 from app.users.schemas import UsersAuthSchema
 
 router = APIRouter(prefix='/basket', tags=["Взаимодействие покупателя с корзиной"])
@@ -43,7 +44,8 @@ async def delete_products(id,
 @router.post('/buy_products/')
 async def make_order(db: DataBase = Depends(DataBase.get_db),
                      current_user: UsersAuthSchema = Depends(get_current_is_user),):
-    return await ProductsDAO.buy_products(current_user, db)
+    await ProductsDAO.buy_products(current_user, db)
+    return await send_notification()
 
 
 @router.get('/my_basket/')

@@ -6,6 +6,9 @@ from app.database.db_helper import DataBase
 from app.routes.auth import router as router_auth
 from app.routes.basket import router as router_basket
 from app.routes.admin import router as router_admin
+from app.routes.rabbitmq import router as router_rabbitmq
+
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -24,5 +27,5 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(router_auth)
 app.include_router(router_basket)
 app.include_router(router_admin)
-
+app.include_router(router_rabbitmq)
 
