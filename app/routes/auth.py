@@ -1,11 +1,10 @@
 import logging
 from typing import Annotated
 from fastapi import APIRouter, Depends
-
 from app.database.db_helper import DataBase
-from app.users.auth import validate_auth_user, encode_jwt
-from app.users.crud import UsersRepository
+from app.dependencies import validate_auth_user
 from app.users.schemas import UsersRegistrationSchema, UsersAuthSchema, TokenInfo
+from app.users.use_case import AuthUseCase
 
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутенфтификация"])
 
@@ -14,15 +13,12 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутенф
 async def registration_users(credentials: Annotated[UsersRegistrationSchema, Depends()],
                              db: DataBase = Depends(DataBase.get_db)) -> dict:
     logging.info("Регистрация пользователя")
-    user = await UsersRepository.get_user(credentials.username, db)
-    if user is None:
-        await UsersRepository.create_users(credentials, db)
-    return {'msg': "Пользователь уже существует"}
+    return await AuthUseCase.register(credentials, db)
 
 
 @router.post('/authorization', description="Аутентификация пользователей", response_model=TokenInfo)
 async def authorization_users(credentials: UsersAuthSchema = Depends(validate_auth_user),):
     logging.info("Авторизация пользователя")
-    await UsersRepository.user_verification(credentials)
+    return await AuthUseCase.user_verification(credentials)
 
 

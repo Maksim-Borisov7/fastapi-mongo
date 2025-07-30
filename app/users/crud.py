@@ -1,8 +1,6 @@
 import logging
 from fastapi import HTTPException
 from app.database.db_helper import DataBase
-from app.users.auth import hash_password, encode_jwt
-from app.users.schemas import TokenInfo
 
 
 class UsersRepository:
@@ -24,10 +22,10 @@ class UsersRepository:
         return lst
 
     @staticmethod
-    async def get_user_by_id(id: str, db: DataBase):
+    async def get_user_by_id(product_id: str, db: DataBase):
         try:
             collection = db.get_collection('users')
-            user = await collection.find_one({"_id": int(id)})
+            user = await collection.find_one({"_id": int(product_id)})
             return user
         except Exception as err:
             raise HTTPException(status_code=400, detail=logging.info(err))
@@ -36,9 +34,9 @@ class UsersRepository:
     async def add_user(credentials: dict, db: DataBase):
         try:
             collection = db.get_collection('users')
-            id = await collection.count_documents({}) + 1
+            user_id = await collection.count_documents({}) + 1
             await collection.insert_one(
-                {"_id": id,
+                {"_id": user_id,
                  "username": credentials['username'],
                  'password': credentials['password'],
                  'email': credentials['email'],
@@ -60,23 +58,3 @@ class UsersRepository:
             )
         except Exception as err:
             raise HTTPException(status_code=400, detail=logging.info(err))
-
-    @classmethod
-    async def create_users(cls, credentials, db):
-        hash_pwd = hash_password(credentials.password)
-        user_dict = dict(credentials)
-        user_dict['password'] = hash_pwd
-        await cls.add_user(user_dict, db)
-        return {"msg": "Пользователь успешно зарегистрирован"}
-
-    @staticmethod
-    async def user_verification(credentials):
-        jwt_payload = {
-            'sub': str(credentials['_id']),
-            'username': credentials['username']
-        }
-        token = encode_jwt(jwt_payload)
-        return TokenInfo(
-            access_token=token,
-            token_type='Bearer'
-        )

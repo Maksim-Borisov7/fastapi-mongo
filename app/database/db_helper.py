@@ -1,6 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import Request
-
 from app.config import settings
 
 

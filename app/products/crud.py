@@ -9,8 +9,8 @@ class ProductsRepository:
     async def add_product_admin(data_product: ProductSchema, db: DataBase):
         try:
             collections = db.get_collection('products')
-            id = await collections.count_documents({}) + 1
-            await collections.insert_one({"_id": id,
+            product_id = await collections.count_documents({}) + 1
+            await collections.insert_one({"_id": product_id,
                                           'name': data_product.name,
                                           'price': data_product.price,
                                           'decr': data_product.descr,
@@ -30,10 +30,10 @@ class ProductsRepository:
             raise HTTPException(status_code=400, detail=logging.info(err))
 
     @staticmethod
-    async def get_product(id: int, db: DataBase) -> dict:
+    async def get_product(product_id: int, db: DataBase) -> dict:
         try:
             collections = db.get_collection('products')
-            return await collections.find_one({"_id": int(id)})
+            return await collections.find_one({"_id": int(product_id)})
         except Exception as err:
             raise HTTPException(status_code=400, detail=logging.info(err))
 

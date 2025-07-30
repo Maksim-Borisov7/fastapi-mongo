@@ -1,12 +1,8 @@
 from datetime import timezone, datetime
 import bcrypt
-from fastapi import HTTPException, Depends, Form
-from starlette import status
 from datetime import timedelta
 from app.config import settings
-from app.database.db_helper import DataBase
 from jose import jwt
-from app.users.crud import UsersDAO
 
 
 def hash_password(password: str) -> bytes:
@@ -19,31 +15,6 @@ def validate_password(password: str,
                       hashed_password: bytes
                       ) -> bool:
     return bcrypt.checkpw(password.encode(), hashed_password)
-
-
-async def validate_auth_user(username: str = Form(),
-                             password: str = Form(),
-                             db: DataBase = Depends(DataBase.get_db)
-                             ):
-    unauth_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="invalid username or password",
-    )
-    db_user = await UsersDAO.get_user(username, db)
-    if not db_user:
-        raise unauth_exc
-    if password == settings.ADMIN_PASSWORD and validate_password(
-            password=password,
-            hashed_password=db_user['password'],
-    ):
-        await UsersDAO.change_credentials(db_user, db)
-        return db_user
-    elif validate_password(
-            password=password,
-            hashed_password=db_user['password'],
-    ):
-        return db_user
-    raise unauth_exc
 
 
 def encode_jwt(payload: dict,
@@ -78,3 +49,7 @@ def decode_jwt(token: str | bytes,
                          algorithm
                          )
     return decoded
+
+
+
+

@@ -1,12 +1,13 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
-
 from app.database.db_helper import DataBase
 from app.dependencies import get_current_is_user
 from app.products.crud import ProductsRepository
 from app.products.schemas import AddProductInBasket
 from app.routes.rabbitmq import send_notification
 from app.users.schemas import UsersAuthSchema
+from app.products.use_case import ProductUseCase
+
 
 router = APIRouter(prefix='/basket', tags=["Взаимодействие покупателя с корзиной"])
 
@@ -15,17 +16,10 @@ router = APIRouter(prefix='/basket', tags=["Взаимодействие пок�
 async def add_products_for_users(data_product: Annotated[AddProductInBasket, Depends()],
                                  current_user: UsersAuthSchema = Depends(get_current_is_user),
                                  db: DataBase = Depends(DataBase.get_db)):
-    product = await ProductsRepository.get_product(data_product.id, db)
-    if product["quantity"] - data_product.quantity < 1:
-        return {'msg': 'Превышен лимит товаров'}
-    if product is not None:
-        product["quantity"] = data_product.quantity
-        await ProductsRepository.add_product_in_basket(product, current_user, db)
-        return {'msg': 'Продукт добавлен в корзину'}
-    return {'msg': 'Данного продукта нет в наличии'}
+    return await ProductUseCase.add_product(data_product, current_user, db)
 
 
-@router.get('/get_products/all/users')
+@router.get('/get_products/all/')
 async def get_all_products(current_user: UsersAuthSchema = Depends(get_current_is_user),
                            db: DataBase = Depends(DataBase.get_db)):
     return await ProductsRepository.get_products(db)
