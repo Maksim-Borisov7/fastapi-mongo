@@ -4,7 +4,7 @@ from app.database.db_helper import DataBase
 from app.products.schemas import ProductSchema
 
 
-class ProductsDAO:
+class ProductsRepository:
     @staticmethod
     async def add_product_admin(data_product: ProductSchema, db: DataBase):
         try:

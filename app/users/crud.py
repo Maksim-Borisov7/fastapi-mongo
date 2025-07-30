@@ -1,9 +1,11 @@
 import logging
 from fastapi import HTTPException
 from app.database.db_helper import DataBase
+from app.users.auth import hash_password, encode_jwt
+from app.users.schemas import TokenInfo
 
 
-class UsersDAO:
+class UsersRepository:
     @staticmethod
     async def get_user(username: str, db: DataBase):
         try:
@@ -12,6 +14,14 @@ class UsersDAO:
             return user
         except Exception as err:
             raise HTTPException(status_code=400, detail=logging.info(err))
+
+    @staticmethod
+    async def get_users(db):
+        collections = db.get_collection('users')
+        lst = []
+        async for user in collections.find():
+            lst.append(user)
+        return lst
 
     @staticmethod
     async def get_user_by_id(id: str, db: DataBase):
@@ -50,3 +60,23 @@ class UsersDAO:
             )
         except Exception as err:
             raise HTTPException(status_code=400, detail=logging.info(err))
+
+    @classmethod
+    async def create_users(cls, credentials, db):
+        hash_pwd = hash_password(credentials.password)
+        user_dict = dict(credentials)
+        user_dict['password'] = hash_pwd
+        await cls.add_user(user_dict, db)
+        return {"msg": "Пользователь успешно зарегистрирован"}
+
+    @staticmethod
+    async def user_verification(credentials):
+        jwt_payload = {
+            'sub': str(credentials['_id']),
+            'username': credentials['username']
+        }
+        token = encode_jwt(jwt_payload)
+        return TokenInfo(
+            access_token=token,
+            token_type='Bearer'
+        )

@@ -16,6 +16,7 @@ class AppConfig(BaseSettings):
     algorithm: str = 'RS256'
     access_token_expire_minutes: int = 15
     DEBUG: bool = Field(True)
+    QUEUE_ORDERS: str = Field(env='QUEUE_ORDERS')
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', case_sensitive=True)
 
 
